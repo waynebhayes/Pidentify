@@ -212,8 +212,8 @@ class Parser:
     def _print_help(self) -> None:
         help_format = "\t{:<25}{}"
         print("python UCI_ml_converter.py [-H] include_header class_col ignore_cols [-d rows] [-db rows] [-cls custom_class] "\
-              "[-clsd drop_chars] [--delay_write] [--drop_col cols] [--merge_cls cols] [--infer_nn] [--keepna] [--drop_duplicates] "\
-              "input_file(s)/folder(s) [--merge file(s)] [-rm file(s)]")
+              "[-clsd drop_chars] [--delay_write] [--drop_col cols] [--merge_cls cols] [--combine_rows] [--infer_nn] [--keepna] [--drop_duplicates] "\
+              "input_file(s)/folder(s) [--merge file(s)] [--merge_on cols file(s)] [-rm file(s)]")
         command_line_format = {"-H": "Optional. Prints the usage statement. All other arguments are ignored.",
                                "include_header": "Integer. If 1, add header if not already in dataset. If 0, drop header if dataset has one.",
                                "class_col": "Integer. The index of the classification column.",
@@ -231,12 +231,13 @@ class Parser:
                                "--merge_cls cols": "Optional. Integer(s). A list of indexes separated by comma. Indicates columns to merge to form the class column.",
                                "--combine_rows": "Optional. Flag that indicates all rows in input file(s) should be combined into one row.",
                                "--infer_nn": "Optional. Flag that indicates to trust Pandas to figure out which columns are non-numerical.",
+                               "--keepna": "Optional. Keep rows with NA/null values instead of dropping rows with NA in numerical columns.",
+                               "--drop_duplicates": "Optional. Drop exact duplicate rows. By default, duplicates are preserved.",
                                "input_file(s)/folder(s)": "File/folder paths. The remaining arguments are paths to files/folders. Invalid file paths are ignored.",
                                "--merge file(s)": "Optional. File/folder paths. Concatenate file column to the end of the last input file.",
                                "--merge_on cols file(s)": "Optional. Inner join dataset(s) based on a list of column names separated by comma.",
                                "-rm file(s)": "Optional. File paths or *filename. Drop files that match the provided file path or all files that match "\
-                                              "the filename.",
-                              "--keepna": "Optional. Keep rows with NA/null values instead of dropping rows with NA in numerical columns.",
-                                "--drop_duplicates": "Optional. Drop exact duplicate rows. By default, duplicates are preserved."}
+                                              "the filename."
+                               }
         for command, description in command_line_format.items():
             print(help_format.format(command, description))

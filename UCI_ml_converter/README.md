@@ -28,14 +28,23 @@ The converter can:
 
 The processed dataset is written to stdout by default. When `--delay_write` is not used, each processed file is written as soon as it is converted. When `--delay_write` is enabled, all processed DataFrames are concatenated and written once at the end. Conversion status is logged to `logs/dataset_converter_log.txt` relative to the converter directory. :contentReference[oaicite:15]{index=15}
 
+## Setup
+
+All dependencies can be installed with the following command:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Command-line usage
 
 ```bash
 python UCI_ml_converter.py [-H] include_header class_col ignore_cols \
   [-d rows] [-db rows] [-cls custom_class] [-clsd drop_chars] \
   [--delay_write] [--drop_col cols] [--merge_cls cols] \
-  [--combine_rows] [--infer_nn] \
-  input_file(s)/folder(s) [--merge file(s)] [--merge_on cols file(s)] [-rm file(s)]
+  [--combine_rows] [--infer_nn] [--keepna] [--drop_duplicates] \
+  input_file(s)/folder(s) [--merge file(s)] \
+  [--merge_on cols file(s)] [-rm file(s)]
 ```
 
 ## Data Availability
