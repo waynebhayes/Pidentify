@@ -46,7 +46,7 @@ void writePValuesToCSV(const std::vector<ClassMember>& dataset,
 	if (fold == 0) {
 		fp = fopen(CACHE_PATHS.pvaluesFilepath.c_str(), "w");
 		if (isProduction) {
-			fprintf(fp, "lineNumber");
+			fprintf(fp, "lineNumber,");
 		}
 		else {
 			fprintf(fp, "lineNumber,fold,");
@@ -140,6 +140,10 @@ void writeNOTACategoryResultsToCSV() {
 				fprintf(fp, "%.2f,", TEST_RESULTS.hyperspacePrecision[pvalCat][NOTALoc][className]);
 			}
 			fprintf(fp, "%.2f\n", TEST_RESULTS.hyperspaceRandomPoints[pvalCat][NOTALoc][5]);
+		}
+
+		if (TEST_RESULTS.pvalueThreshold >= 0) {
+			break;
 		}
 	}
 

@@ -40,17 +40,42 @@ class Parser:
 
             extensions = list(map(self._get_file_extension, input_files))
 
-            datafile_list = [DataFile(file_path=input_files[i], file_type=extensions[i], class_col_index=class_col,
-                                      ignore_cols=ignore_cols[:], drop_cols = optional_params["drop_columns"][:], ignore_rows=optional_params["ignore_rows"],
-                                      drop_footer=optional_params["drop_footer"], include_header=include_header if i == 0 else False,
-                                      class_drop_chars=optional_params["cls_drop"], custom_class=optional_params["custom_cls"][:],
-                                      merge_class=optional_params["merge_cls"][:], combine_rows=optional_params["combine_rows"],
-                                      infer_non_num=optional_params["infer_non_num"])
-                             for i in range(len(input_files))]
+            datafile_list = [
+                DataFile(
+                    file_path=input_files[i],
+                    file_type=extensions[i],
+                    class_col_index=class_col,
+                    ignore_cols=ignore_cols[:],
+                    drop_cols=optional_params["drop_columns"][:],
+                    ignore_rows=optional_params["ignore_rows"],
+                    drop_footer=optional_params["drop_footer"],
+                    include_header=include_header if i == 0 else False,
+                    class_drop_chars=optional_params["cls_drop"],
+                    custom_class=optional_params["custom_cls"][:],
+                    merge_class=optional_params["merge_cls"][:],
+                    combine_rows=optional_params["combine_rows"],
+                    infer_non_num=optional_params["infer_non_num"],
+                    keep_na=optional_params["keep_na"],
+                    drop_duplicates=optional_params["drop_duplicates"]
+                )
+                for i in range(len(input_files))
+            ]
             
             for file_path, merge_paths in merge_files.items():
                 for i in range(len(merge_paths)):
-                    merge_files[file_path][i] = DataFile(merge_paths[i], *[None] * 10)
+                    merge_files[file_path][i] = DataFile(
+                        file_path=merge_paths[i],
+                        file_type=self._get_file_extension(merge_paths[i]),
+                        class_col_index=-1,
+                        ignore_cols=[],
+                        drop_cols=[],
+                        ignore_rows=0,
+                        drop_footer=0,
+                        include_header=False,
+                        class_drop_chars=False,
+                        custom_class=[],
+                        merge_class=[],
+                    )
 
             return datafile_list, merge_files, merge_on_keys, optional_params["delay_write"]
         except IndexError:
@@ -123,13 +148,28 @@ class Parser:
         Parse arguments for the following optional flags: -d, -db, -cls, -clsd, --delay_write,
         --drop_col, --merge_cls, --combine_rows, --infer_nn.
         """
-        flags = ["-d", "-db", "-cls", "-clsd", "--delay_write", "--drop_col", "--merge_cls", "--combine_rows",
-                 "--infer_nn"]
-        optional_params = {"ignore_rows": 0, "drop_footer": 0, "cls_drop": False, "custom_cls": [],
-                           "delay_write": False, "drop_columns": [], "merge_cls": [], "combine_rows": False,
-                           "infer_non_num": False}
+        flags = [
+            "-d", "-db", "-cls", "-clsd",
+            "--delay_write", "--drop_col", "--merge_cls",
+            "--combine_rows", "--infer_nn",
+            "--keepna", "--drop_duplicates"
+        ]
+        
+        optional_params = {
+            "ignore_rows": 0,
+            "drop_footer": 0,
+            "cls_drop": False,
+            "custom_cls": [],
+            "delay_write": False,
+            "drop_columns": [],
+            "merge_cls": [],
+            "combine_rows": False,
+            "infer_non_num": False,
+            "keep_na": False,
+            "drop_duplicates": False
+        }
         i = 0
-        while user_input[i] in flags:
+        while i < len(user_input) and user_input[i] in flags:
             if user_input[i] == "-d":
                 optional_params["ignore_rows"] = int(user_input[i + 1])
                 increment = 2
@@ -158,6 +198,12 @@ class Parser:
             elif user_input[i] == "--infer_nn":
                 optional_params["infer_non_num"] = True
                 increment = 1
+            elif user_input[i] == "--keepna":
+                optional_params["keep_na"] = True
+                increment = 1
+            elif user_input[i] == "--drop_duplicates":
+                optional_params["drop_duplicates"] = True
+                increment = 1
             i += increment
     
         return i, optional_params
@@ -166,8 +212,8 @@ class Parser:
     def _print_help(self) -> None:
         help_format = "\t{:<25}{}"
         print("python UCI_ml_converter.py [-H] include_header class_col ignore_cols [-d rows] [-db rows] [-cls custom_class] "\
-              "[-clsd drop_chars] [--delay_write] [--drop_col cols] [--merge_cls cols] [--infer_nn] "\
-              "input_file(s)/folder(s) [--merge file(s)] [-rm file(s)]")
+              "[-clsd drop_chars] [--delay_write] [--drop_col cols] [--merge_cls cols] [--combine_rows] [--infer_nn] [--keepna] [--drop_duplicates] "\
+              "input_file(s)/folder(s) [--merge file(s)] [--merge_on cols file(s)] [-rm file(s)]")
         command_line_format = {"-H": "Optional. Prints the usage statement. All other arguments are ignored.",
                                "include_header": "Integer. If 1, add header if not already in dataset. If 0, drop header if dataset has one.",
                                "class_col": "Integer. The index of the classification column.",
@@ -185,10 +231,13 @@ class Parser:
                                "--merge_cls cols": "Optional. Integer(s). A list of indexes separated by comma. Indicates columns to merge to form the class column.",
                                "--combine_rows": "Optional. Flag that indicates all rows in input file(s) should be combined into one row.",
                                "--infer_nn": "Optional. Flag that indicates to trust Pandas to figure out which columns are non-numerical.",
+                               "--keepna": "Optional. Keep rows with NA/null values instead of dropping rows with NA in numerical columns.",
+                               "--drop_duplicates": "Optional. Drop exact duplicate rows. By default, duplicates are preserved.",
                                "input_file(s)/folder(s)": "File/folder paths. The remaining arguments are paths to files/folders. Invalid file paths are ignored.",
                                "--merge file(s)": "Optional. File/folder paths. Concatenate file column to the end of the last input file.",
                                "--merge_on cols file(s)": "Optional. Inner join dataset(s) based on a list of column names separated by comma.",
                                "-rm file(s)": "Optional. File paths or *filename. Drop files that match the provided file path or all files that match "\
-                                              "the filename."}
+                                              "the filename."
+                               }
         for command, description in command_line_format.items():
             print(help_format.format(command, description))
